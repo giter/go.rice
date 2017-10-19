@@ -3,7 +3,7 @@ package main
 import (
 	"strconv"
 
-	"github.com/GeertJohan/go.incremental"
+	"github.com/giter/go.incremental"
 )
 
 var identifierCount incremental.Uint64

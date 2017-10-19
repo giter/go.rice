@@ -15,17 +15,17 @@ import (
 
 const boxFilename = "rice-box.go"
 
-func writeBoxesGo(pkg *build.Package, out io.Writer) error {
+func operationEmbedGo(pkg *build.Package) {
+
 	boxMap := findBoxes(pkg)
 
 	// notify user when no calls to rice.FindBox are made (is this an error and therefore os.Exit(1) ?
 	if len(boxMap) == 0 {
 		fmt.Println("no calls to rice.FindBox() found")
-		return nil
+		return
 	}
 
 	verbosef("\n")
-
 	var boxes []*boxDataType
 
 	for boxname := range boxMap {
@@ -47,7 +47,8 @@ func writeBoxesGo(pkg *build.Package, out io.Writer) error {
 		// read box metadata
 		boxInfo, ierr := os.Stat(boxPath)
 		if ierr != nil {
-			return fmt.Errorf("Error: unable to access box at %s\n", boxPath)
+			fmt.Printf("Error: unable to access box at %s\n", boxPath)
+			os.Exit(1)
 		}
 
 		// create box datastructure (used by template)
@@ -59,14 +60,16 @@ func writeBoxesGo(pkg *build.Package, out io.Writer) error {
 		}
 
 		if !boxInfo.IsDir() {
-			return fmt.Errorf("Error: Box %s must point to a directory but points to %s instead\n",
+			fmt.Printf("Error: Box %s must point to a directory but points to %s instead\n",
 				boxname, boxPath)
+			os.Exit(1)
 		}
 
 		// fill box datastructure with file data
-		err := filepath.Walk(boxPath, func(path string, info os.FileInfo, err error) error {
+		filepath.Walk(boxPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				return fmt.Errorf("error walking box: %s\n", err)
+				fmt.Printf("error walking box: %s\n", err)
+				os.Exit(1)
 			}
 
 			filename := strings.TrimPrefix(path, boxPath)
@@ -98,7 +101,8 @@ func writeBoxesGo(pkg *build.Package, out io.Writer) error {
 				verbosef("\tincludes file: '%s'\n", fileData.FileName)
 				fileData.Content, err = ioutil.ReadFile(path)
 				if err != nil {
-					return fmt.Errorf("error reading file content while walking box: %s\n", err)
+					fmt.Printf("error reading file content while walking box: %s\n", err)
+					os.Exit(1)
 				}
 				box.Files = append(box.Files, fileData)
 
@@ -106,15 +110,13 @@ func writeBoxesGo(pkg *build.Package, out io.Writer) error {
 				pathParts := strings.Split(fileData.FileName, "/")
 				parentDir := box.Dirs[strings.Join(pathParts[:len(pathParts)-1], "/")]
 				if parentDir == nil {
-					return fmt.Errorf("Error: parent of %s is not within the box\n", path)
+					fmt.Printf("Error: parent of %s is not within the box\n", path)
+					os.Exit(1)
 				}
 				parentDir.ChildFiles = append(parentDir.ChildFiles, fileData)
 			}
 			return nil
 		})
-		if err != nil {
-			return err
-		}
 		boxes = append(boxes, box)
 
 	}
@@ -127,24 +129,17 @@ func writeBoxesGo(pkg *build.Package, out io.Writer) error {
 		embedFileDataType{pkg.Name, boxes},
 	)
 	if err != nil {
-		return fmt.Errorf("error writing embedded box to file (template execute): %s\n", err)
+		log.Printf("error writing embedded box to file (template execute): %s\n", err)
+		os.Exit(1)
 	}
 
 	// format the source code
 	embedSource, err := format.Source(embedSourceUnformated.Bytes())
 	if err != nil {
-		return fmt.Errorf("error formatting embedSource: %s\n", err)
+		log.Printf("error formatting embedSource: %s\n", err)
+		os.Exit(1)
 	}
 
-	// write source to file
-	_, err = io.Copy(out, bytes.NewBuffer(embedSource))
-	if err != nil {
-		return fmt.Errorf("error writing embedSource to file: %s\n", err)
-	}
-	return nil
-}
-
-func operationEmbedGo(pkg *build.Package) {
 	// create go file for box
 	boxFile, err := os.Create(filepath.Join(pkg.Dir, boxFilename))
 	if err != nil {
@@ -153,9 +148,11 @@ func operationEmbedGo(pkg *build.Package) {
 	}
 	defer boxFile.Close()
 
-	err = writeBoxesGo(pkg, boxFile)
+	// write source to file
+	_, err = io.Copy(boxFile, bytes.NewBuffer(embedSource))
 	if err != nil {
-		log.Printf("error creating embedded box file: %s\n", err)
+		log.Printf("error writing embedSource to file: %s\n", err)
 		os.Exit(1)
 	}
+
 }

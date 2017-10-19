@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GeertJohan/go.rice/embedded"
+	"github.com/giter/go.rice/embedded"
 )
 
 // Box abstracts a directory for resources/files.
@@ -23,7 +23,7 @@ type Box struct {
 	appendd      *appendedBox
 }
 
-var defaultLocateOrder = []LocateMethod{LocateEmbedded, LocateAppended, LocateFS}
+var defaultLocateOrder = []LocateMethod{LocateEmbedded, LocateAppended, LocateWorkingDirectory}
 
 func findBox(name string, order []LocateMethod) (*Box, error) {
 	b := &Box{name: name}

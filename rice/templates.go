@@ -15,7 +15,7 @@ func init() {
 	tmplEmbeddedBox, err = template.New("embeddedBox").Parse(`package {{.Package}}
 
 import (
-	"github.com/GeertJohan/go.rice/embedded"
+	"github.com/giter/go.rice/embedded"
 	"time"
 )
 
@@ -24,18 +24,18 @@ func init() {
 
 	// define files
 	{{range .Files}}{{.Identifier}} := &embedded.EmbeddedFile{
-		Filename:    {{.FileName | printf "%q"}},
+		Filename:    ` + "`" + `{{.FileName}}` + "`" + `,
 		FileModTime: time.Unix({{.ModTime}}, 0),
-		Content:     string({{.Content | printf "%q"}}),
+		Content:     string({{.Content | printf "%q"}}), 
 	}
 	{{end}}
 
 	// define dirs
 	{{range .Dirs}}{{.Identifier}} := &embedded.EmbeddedDir{
-		Filename:    {{.FileName | printf "%q"}},
+		Filename:    ` + "`" + `{{.FileName}}` + "`" + `,
 		DirModTime: time.Unix({{.ModTime}}, 0),
 		ChildFiles:  []*embedded.EmbeddedFile{
-			{{range .ChildFiles}}{{.Identifier}}, // {{.FileName | printf "%q"}}
+			{{range .ChildFiles}}{{.Identifier}}, // {{.FileName}}
 			{{end}}
 		},
 	}
@@ -43,7 +43,7 @@ func init() {
 
 	// link ChildDirs
 	{{range .Dirs}}{{.Identifier}}.ChildDirs = []*embedded.EmbeddedDir{
-		{{range .ChildDirs}}{{.Identifier}}, // {{.FileName | printf "%q"}}
+		{{range .ChildDirs}}{{.Identifier}}, // {{.FileName}}
 		{{end}}
 	}
 	{{end}}
@@ -53,11 +53,11 @@ func init() {
 		Name: ` + "`" + `{{.BoxName}}` + "`" + `,
 		Time: time.Unix({{.UnixNow}}, 0),
 		Dirs: map[string]*embedded.EmbeddedDir{
-			{{range .Dirs}}{{.FileName | printf "%q"}}: {{.Identifier}},
+			{{range .Dirs}}"{{.FileName}}": {{.Identifier}},
 			{{end}}
 		},
 		Files: map[string]*embedded.EmbeddedFile{
-			{{range .Files}}{{.FileName | printf "%q"}}: {{.Identifier}},
+			{{range .Files}}"{{.FileName}}": {{.Identifier}},
 			{{end}}
 		},
 	})

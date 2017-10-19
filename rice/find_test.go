@@ -39,11 +39,7 @@ func setUpTestPkg(pkgName string, files []sourceFile) (*build.Package, func(), e
 		return nil, cleanup, err
 	}
 	for _, f := range files {
-		fullPath := filepath.Join(dir, f.Name)
-		if err := os.MkdirAll(filepath.Dir(fullPath), 0770); err != nil {
-			return nil, cleanup, err
-		}
-		if err := ioutil.WriteFile(fullPath, f.Contents, 0660); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(dir, f.Name), f.Contents, 0660); err != nil {
 			return nil, cleanup, err
 		}
 	}
@@ -58,7 +54,7 @@ func TestFindOneBox(t *testing.T) {
 			[]byte(`package main
 
 import (
-	"github.com/GeertJohan/go.rice"
+	"github.com/giter/go.rice"
 )
 
 func main() {
@@ -88,7 +84,7 @@ func TestFindOneBoxViaVariable(t *testing.T) {
 			[]byte(`package main
 
 import (
-	"github.com/GeertJohan/go.rice"
+	"github.com/giter/go.rice"
 )
 
 func main() {
@@ -120,7 +116,7 @@ func TestFindMultipleBoxes(t *testing.T) {
 			[]byte(`package main
 
 import (
-	"github.com/GeertJohan/go.rice"
+	"github.com/giter/go.rice"
 )
 
 func main() {
@@ -179,7 +175,7 @@ func TestUnrelatedBoxesAreNotFound(t *testing.T) {
 			[]byte(`package foobar
 
 import (
-	_ "github.com/GeertJohan/go.rice"
+	_ "github.com/giter/go.rice"
 )
 
 type fakerice struct {}
@@ -194,7 +190,7 @@ func FindBox(s string) {
 func LoadBoxes() {
 	rice := fakerice{}
 	rice.FindBox("foo")
-
+	
 	FindBox("bar")
 }
 `),
@@ -221,7 +217,7 @@ func TestMixGoodAndBadBoxes(t *testing.T) {
 			[]byte(`package foobar
 
 import (
-	_ "github.com/GeertJohan/go.rice"
+	_ "github.com/giter/go.rice"
 )
 
 type fakerice struct {}
@@ -236,7 +232,7 @@ func FindBox(s string) {
 func LoadBoxes1() {
 	rice := fakerice{}
 	rice.FindBox("foo")
-
+	
 	FindBox("bar")
 }
 `),
@@ -246,7 +242,7 @@ func LoadBoxes1() {
 			[]byte(`package foobar
 
 import (
-	noodles "github.com/GeertJohan/go.rice"
+	noodles "github.com/giter/go.rice"
 )
 
 func LoadBoxes2() {
@@ -260,7 +256,7 @@ func LoadBoxes2() {
 			[]byte(`package foobar
 
 import (
-	"github.com/GeertJohan/go.rice"
+	"github.com/giter/go.rice"
 )
 
 func LoadBoxes3() {
@@ -273,7 +269,7 @@ func LoadBoxes3() {
 			[]byte(`package foobar
 
 import (
-	. "github.com/GeertJohan/go.rice"
+	. "github.com/giter/go.rice"
 )
 
 func LoadBoxes3() {

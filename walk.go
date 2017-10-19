@@ -42,6 +42,7 @@ func (b *Box) Walk(path string, walkFn filepath.WalkFunc) error {
 func (b *Box) walk(path string, info os.FileInfo, walkFn filepath.WalkFunc) error {
 
 	err := walkFn(path, info, nil)
+
 	if err != nil {
 		if info.IsDir() && err == filepath.SkipDir {
 			return nil
@@ -54,14 +55,23 @@ func (b *Box) walk(path string, info os.FileInfo, walkFn filepath.WalkFunc) erro
 	}
 
 	names, err := b.readDirNames(path)
+
 	if err != nil {
 		return walkFn(path, info, err)
 	}
 
 	for _, name := range names {
 
-		filename := filepath.Join(path, name)
+		var filename string
+
+		if strings.HasSuffix(path, "/") {
+			filename = path + name
+		} else {
+			filename = path + "/" + name
+		}
+
 		fileObject, err := b.Open(filename)
+
 		if err != nil {
 			return err
 		}
