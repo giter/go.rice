@@ -62,6 +62,10 @@ func (b *Box) walk(path string, info os.FileInfo, walkFn filepath.WalkFunc) erro
 
 	for _, name := range names {
 
+		if name == "." {
+			continue
+		}
+
 		var filename string
 
 		if strings.HasSuffix(path, "/") {
