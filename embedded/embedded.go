@@ -9,17 +9,15 @@ import (
 )
 
 const (
-	EmbedTypeGo   = 0
-	EmbedTypeSyso = 1
+	EmbedTypeGo = 0
 )
 
 // EmbeddedBox defines an embedded box
 type EmbeddedBox struct {
-	Name      string                   // box name
-	Time      time.Time                // embed time
-	EmbedType int                      // kind of embedding
-	Files     map[string]*EmbeddedFile // ALL embedded files by full path
-	Dirs      map[string]*EmbeddedDir  // ALL embedded dirs by full path
+	Name  string                   // box name
+	Time  time.Time                // embed time
+	Files map[string]*EmbeddedFile // ALL embedded files by full path
+	Dirs  map[string]*EmbeddedDir  // ALL embedded dirs by full path
 }
 
 // Link creates the ChildDirs and ChildFiles links in all EmbeddedDir's
